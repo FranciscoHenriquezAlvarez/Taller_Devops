@@ -1,9 +1,11 @@
 name: Taller1
+
 on:
   push:
     branches: [main]
 
   workflow_dispatch:
+
 permissions:
   contents: read
 
@@ -12,27 +14,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: ontener el codigo
+      - name: Obtener el codigo
         uses: actions/checkout@v7
-
-      - name: crear carpeta en el servidor
-        uses: appleboy/scp-actions@v1
         with:
-          host: ${{secrets.IP_PUBLICA}}
-          username: ${{secrets.USERNAME}}
-          key: ${{secrets.KEY}}
-          source: .
-          target: "/home/${{secrets.USERNAME}}/proyecto1"
+          persist-credentials: false
+
+      - name: Copiar archivos al servidor
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.IP_PUBLICA }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          source: ".dockerignore,Dockerfile,app.py,compose.yaml,profile.json,requirements.txt,static,templates"
+          target: "/home/${{ secrets.USERNAME }}/proyecto1"
           overwrite: true
 
-      - name: levantar contenedor
-        uses: appleboy/ssh-actions@v1
-        with: 
-          host: ${{secrets.IP_PUBLICA}}
-          username: ${{secrets.USERNAME}}
-          key: ${{secrets.KEY}}
+      - name: Levantar contenedor
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.IP_PUBLICA }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
           script: |
-            cd ~/${{secrets.USERNAME}}/proyecto1
+            set -e
+            cd ~/proyecto1
             docker compose down
             docker compose up -d --build
-    
+            docker compose ps
